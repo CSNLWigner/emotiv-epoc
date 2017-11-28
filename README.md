@@ -1,0 +1,2 @@
+# emotiv-epoc
+EEG project
