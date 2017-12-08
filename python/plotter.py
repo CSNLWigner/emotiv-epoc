@@ -50,20 +50,19 @@ def plot_channels(screen, data):
 def channel_diff(ch1,ch2):
     return([ch1[i]-ch2[i] for i in range(len(ch1))])
 
-def emotiv_plotter(t_record=2000):
+def emotiv_plotter():
     recording = False
     data = dict()
     for ch in CHANNELS:
         data[ch]=[]
-    print(t_record)
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
     emokit_controller = EmokitController(cache=True, cache_length=400)
-    emokit_controller.establish_connection()
+    #emokit_controller.establish_connection()
     decoder_cache=[0 for i in range(400)]
     t = 0
+    data_t = 0
     while True:
-
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if (recording):
@@ -71,6 +70,8 @@ def emotiv_plotter(t_record=2000):
                     pickle.dump(data,open(filename,'wb'))
                     for ch in CHANNELS:
                         data[ch]=[]
+                if not recording:
+                    data_t = 0
                 recording = not recording
 
             if event.type == pygame.QUIT:
@@ -79,21 +80,19 @@ def emotiv_plotter(t_record=2000):
 
         new_data = emokit_controller.post_pygame_event()
         plot_data = emokit_controller.get_cache_data()
-        plot_data['decoder'] = emokit_controller.get_cache_decoder()
+        #plot_data['decoder'] = emokit_controller.get_cache_decoder()
         screen.fill((0,0,0))
         if recording:
+            data_t += 1
+            screen.blit(FONT.render(str(data_t), True, (230,230,230)), (SCREEN_WIDTH*(1-MARGIN_X*0.9), 50))
             for ch in CHANNELS:
             	data[ch].append(plot_data[ch][-1])
             pygame.draw.rect(screen,(250,0,0),(SCREEN_WIDTH*(1-MARGIN_X/4*3),5,20,20))
+
         t += 1
         if (len(plot_data['AF4'])>100) and (t % 15==0):
             plot_channels(screen, plot_data)
         time.sleep(0.001)
-        if (t_record > 0) and (t==t_record):
-            pickle.dump(plot_data,open('data.pkl','wb'))
-
-def record_data(t):
-    emotiv_plotter(t)
 
 def main():
     #emotiv = Emotiv(display_output=False, is_research=True)
