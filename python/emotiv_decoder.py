@@ -42,6 +42,6 @@ def blink_decoder(channel_data):
 
 def bow_decoder(channel_data):
     if (np.mean(channel_data)>28):
-        return('UP')
+        return(1)
 
 decode = bow_decoder

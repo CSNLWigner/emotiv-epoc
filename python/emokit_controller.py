@@ -34,7 +34,7 @@ class EmokitController:
         while True:
             self.stream_data()
             key = self.decode()
-            if key != 'UP':
+            if key != 1:
                 time.sleep(0.01)
             else:
                 break
@@ -53,22 +53,22 @@ class EmokitController:
         if (time.time()-self.t_last_window)>=emotiv_decoder.WINDOW_SHIFT:
             key = self.decode()
             self.t_last_window = time.time()
-            if (key == 'UP'):
+            if (key == 1):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_UP, 'unicode': None}))
                 self.cache_decoder.append(1)
-            elif (key == 'DOWN'):
+            elif (key == 2):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_DOWN, 'unicode': None}))
-                self.cache_decoder.append(-1)
-            elif (key == 'LEFT'):
+                self.cache_decoder.append(2)
+            elif (key == 3):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_LEFT, 'unicode': None}))
-                self.cache_decoder.append(2)
-            elif (key == 'RIGHT'):
+                self.cache_decoder.append(3)
+            elif (key == 4):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_RIGHT, 'unicode': None}))
-                self.cache_decoder.append(-2)
+                self.cache_decoder.append(4)
             else:
                 self.cache_decoder.append(0)
         else:

@@ -1,6 +1,6 @@
 ## plotter
 
-from emokit_controller import EmokitController
+from emokit_controller import EmokitController, CHANNELS
 import pygame
 
 import numpy as np
@@ -38,7 +38,7 @@ def plot_channels(screen, data):
     n_channel = len(data)
     i = 1
     channel_height = SCREEN_HEIGHT / (n_channel*(1+SPACING_Y)+SPACING_Y)
-    for name, channel in data.items():
+    for name, channel in sorted(data.items()):
         try: 
             plot_channel(screen, channel, name, (i)*channel_height, channel_height/(1+SPACING_Y))
         except:
@@ -51,6 +51,10 @@ def channel_diff(ch1,ch2):
     return([ch1[i]-ch2[i] for i in range(len(ch1))])
 
 def emotiv_plotter(t_record=2000):
+    recording = False
+    data = dict()
+    for ch in CHANNELS:
+        data[ch]=[]
     print(t_record)
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -59,7 +63,16 @@ def emotiv_plotter(t_record=2000):
     decoder_cache=[0 for i in range(400)]
     t = 0
     while True:
+
         for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if (recording):
+                    filename=input('Filename: ')
+                    pickle.dump(data,open(filename,'wb'))
+                    for ch in CHANNELS:
+                        data[ch]=[]
+                recording = not recording
+
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -68,6 +81,10 @@ def emotiv_plotter(t_record=2000):
         plot_data = emokit_controller.get_cache_data()
         plot_data['decoder'] = emokit_controller.get_cache_decoder()
         screen.fill((0,0,0))
+        if recording:
+            for ch in CHANNELS:
+            	data[ch].append(plot_data[ch][-1])
+            pygame.draw.rect(screen,(250,0,0),(SCREEN_WIDTH*(1-MARGIN_X/4*3),5,20,20))
         t += 1
         if (len(plot_data['AF4'])>100) and (t % 15==0):
             plot_channels(screen, plot_data)
