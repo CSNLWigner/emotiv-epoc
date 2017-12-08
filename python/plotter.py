@@ -5,6 +5,7 @@ import pygame
 
 import numpy as np
 import time
+import pickle
 
 SCREEN_WIDTH  = 1280
 SCREEN_HEIGHT = 800
@@ -49,34 +50,33 @@ def plot_channels(screen, data):
 def channel_diff(ch1,ch2):
     return([ch1[i]-ch2[i] for i in range(len(ch1))])
 
-def emotiv_plotter():
+def emotiv_plotter(t_record=2000):
+    print(t_record)
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
-    emokit_controller = EmokitController()
-    data = dict()
-    for name in 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4 X Y'.split(' '):
-        data[name] = []
+    emokit_controller = EmokitController(cache=True, cache_length=400)
     emokit_controller.establish_connection()
+    decoder_cache=[0 for i in range(400)]
     t = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-        new_data = emokit_controller.stream_data()
-        for ch in new_data:
-            if(len(data[ch])>400):
-                data[ch].pop(0)
-            if (new_data[ch] != []):
-                data[ch].append(new_data[ch]['value'])
 
-        channels = dict(AF3_AF4=channel_diff(data['AF3'],data['AF4']),
-                        F3_F4=channel_diff(data['F3'],data['F4']))
+        new_data = emokit_controller.post_pygame_event()
+        plot_data = emokit_controller.get_cache_data()
+        plot_data['decoder'] = emokit_controller.get_cache_decoder()
         screen.fill((0,0,0))
         t += 1
-        if (len(data['AF4'])>100) and (t % 15==0):
-            plot_channels(screen, data)
+        if (len(plot_data['AF4'])>100) and (t % 15==0):
+            plot_channels(screen, plot_data)
         time.sleep(0.001)
+        if (t_record > 0) and (t==t_record):
+            pickle.dump(plot_data,open('data.pkl','wb'))
+
+def record_data(t):
+    emotiv_plotter(t)
 
 def main():
     #emotiv = Emotiv(display_output=False, is_research=True)
