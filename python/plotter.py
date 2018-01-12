@@ -6,6 +6,7 @@ import pygame
 import numpy as np
 import time
 import pickle
+import sys
 
 SCREEN_WIDTH  = 1280
 SCREEN_HEIGHT = 800
@@ -57,7 +58,19 @@ def emotiv_plotter():
         data[ch]=[]
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
-    emokit_controller = EmokitController(cache=True, cache_length=400)
+    
+    # Initialize EmokitController with is_research setting obtained from cmd line input
+    if (len(sys.argv)<2):
+    	print('Need is_research True or False')
+    	exit()
+    if sys.argv[1] == "True":
+    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
+    elif sys.argv[1] == "False":
+    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
+    else:
+    	print('Incorrect is_research, type True or False')
+    	exit()
+
     #emokit_controller.establish_connection()
     decoder_cache=[0 for i in range(400)]
     t = 0

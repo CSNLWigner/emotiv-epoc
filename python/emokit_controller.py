@@ -12,7 +12,7 @@ CHANNELS = 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4 X Y'.split(' ')
 
 class EmokitController:
 
-    def __init__(self, connect_new_device = True, cache=True, cache_length=200, **kwargs):
+    def __init__(self, connect_new_device = True, cache=True, cache_length=200, is_research = True, **kwargs):
         self.current_y = 22
         self.previous_y = 22
         self.speed_y = 22
@@ -26,7 +26,7 @@ class EmokitController:
                 self.cache_data[ch]=[0]
             self.cache_length = cache_length
         if connect_new_device:
-            self.emotiv = Emotiv(display_output = False, is_research = True)
+            self.emotiv = Emotiv(display_output = False, is_research = is_research)
         else:
             self.emotiv = kwargs['emotiv']
 
