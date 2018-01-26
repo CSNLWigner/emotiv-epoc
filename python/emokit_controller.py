@@ -4,6 +4,7 @@ from emokit.packet import EmotivPacket
 import sys
 import time
 import pygame
+import pickle
 import emotiv_decoder
 import numpy as np
 from pygame.locals import K_UP, K_LEFT, K_DOWN, K_RIGHT
@@ -29,6 +30,15 @@ class EmokitController:
             self.emotiv = Emotiv(display_output = False, is_research = is_research)
         else:
             self.emotiv = kwargs['emotiv']
+        self.load_calibration()
+
+    def load_calibration(self):
+        self.calibrated = False
+        try: 
+            self.bounds = pickle.load(open('CALIBRATION_BOUNDS.pkl'))
+            self.calibrated = True
+        except:
+            print('No calibration profile found (CALIBRATION_BOUNDS.pkl)')
 
     def establish_connection(self):
         while True:
@@ -42,6 +52,9 @@ class EmokitController:
 
     def decode(self):
         data = np.array([self.cache_data[ch][-emotiv_decoder.WINDOW_SIZE:] for ch in emotiv_decoder.CHANNELS])
+        if self.calibrated:
+            for ch in CHANNELS:
+                data[ch] = (data[ch]-(self.bounds['max'][ch]+self.bounds['min'][ch])/2) / (self.bounds['max'][ch]-self.bounds['min'][ch])
         key = emotiv_decoder.decode(data)
         #print(self.cache_data)
         return(key)

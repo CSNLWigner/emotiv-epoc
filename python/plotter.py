@@ -71,6 +71,15 @@ def emotiv_plotter():
     	print('Incorrect is_research, type True or False')
     	exit()
 
+    calibration_mode = False
+    if (len(sys.argv)>2):
+        if (sys.argv[2] == 'calibration'):
+            calibration_mode = True
+            try:
+                input_distance = int(sys.argv[3])
+            except:
+                raise RuntimeError('Incorrect input distance given. (3rd argument)')
+
     #emokit_controller.establish_connection()
     decoder_cache=[0 for i in range(400)]
     t = 0
@@ -81,6 +90,14 @@ def emotiv_plotter():
                 if (recording):
                     filename=input('Filename: ')
                     pickle.dump(data,open(filename,'wb'))
+
+                    bounds = dict(min = dict(), max = dict())
+                    for ch in CHANNELS:
+                        bounds['min'][ch] = np.min(data[ch])
+                        bounds['max'][ch] = np.max(data[ch])
+                    filename='CALIBRATION_BOUNDS.pkl'
+                    pickle.dump(bounds, open(filename,'wb'))
+
                     for ch in CHANNELS:
                         data[ch]=[]
                 if not recording:
@@ -93,7 +110,7 @@ def emotiv_plotter():
 
         new_data = emokit_controller.post_pygame_event()
         plot_data = emokit_controller.get_cache_data()
-        #plot_data['decoder'] = emokit_controller.get_cache_decoder()
+        plot_data['decoder'] = emokit_controller.get_cache_decoder()
         screen.fill((0,0,0))
         if recording:
             data_t += 1
@@ -102,10 +119,14 @@ def emotiv_plotter():
             	data[ch].append(plot_data[ch][-1])
             pygame.draw.rect(screen,(250,0,0),(SCREEN_WIDTH*(1-MARGIN_X/4*3),5,20,20))
 
+        if calibration_mode and ((data_t % input_distance) > 0) and ((data_t % input_distance) < 20):
+            pygame.draw.rect(screen,(0,0,250),(SCREEN_WIDTH/2,5,20,20))
+
         t += 1
         if (len(plot_data['AF4'])>100) and (t % 15==0):
             plot_channels(screen, plot_data)
         time.sleep(0.001)
+
 
 def main():
     #emotiv = Emotiv(display_output=False, is_research=True)
