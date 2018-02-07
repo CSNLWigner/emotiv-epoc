@@ -88,16 +88,21 @@ def emotiv_plotter():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if (recording):
+                    if calibration_mode:
+                        bounds = dict(min = dict(), max = dict())
+                        for ch in CHANNELS:
+                            bounds['min'][ch] = np.min(data[ch])
+                            bounds['max'][ch] = np.max(data[ch])
+                            
+                        filename='CALIBRATION_BOUNDS.pkl'
+                        pickle.dump(bounds, open(filename,'wb'))
+                        N = np.size(data[CHANNELS[0]])
+                        data['input'] = np.zeros(N)
+                        for y in range(int(N / input_distance)):
+                            data['input'][y*input_distance] = 1
                     filename=input('Filename: ')
                     pickle.dump(data,open(filename,'wb'))
-
-                    bounds = dict(min = dict(), max = dict())
-                    for ch in CHANNELS:
-                        bounds['min'][ch] = np.min(data[ch])
-                        bounds['max'][ch] = np.max(data[ch])
-                    filename='CALIBRATION_BOUNDS.pkl'
-                    pickle.dump(bounds, open(filename,'wb'))
-
+                    
                     for ch in CHANNELS:
                         data[ch]=[]
                 if not recording:

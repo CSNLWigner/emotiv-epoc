@@ -35,7 +35,7 @@ class EmokitController:
     def load_calibration(self):
         self.calibrated = False
         try: 
-            self.bounds = pickle.load(open('CALIBRATION_BOUNDS.pkl'))
+            self.bounds = pickle.load(open('CALIBRATION_BOUNDS.pkl','rb'))
             self.calibrated = True
         except:
             print('No calibration profile found (CALIBRATION_BOUNDS.pkl)')
@@ -51,13 +51,16 @@ class EmokitController:
         print('Connection established.')
 
     def decode(self):
-        data = np.array([self.cache_data[ch][-emotiv_decoder.WINDOW_SIZE:] for ch in emotiv_decoder.CHANNELS])
-        if self.calibrated:
-            for ch in CHANNELS:
-                data[ch] = (data[ch]-(self.bounds['max'][ch]+self.bounds['min'][ch])/2) / (self.bounds['max'][ch]-self.bounds['min'][ch])
-        key = emotiv_decoder.decode(data)
-        #print(self.cache_data)
-        return(key)
+        data = np.array([self.cache_data[ch][-emotiv_decoder.WINDOW_SIZE:] for ch in emotiv_decoder.CHANNELS], dtype = 'float')
+        if (np.size(data,1) == emotiv_decoder.WINDOW_SIZE):
+            if self.calibrated:
+                for i, ch in enumerate(emotiv_decoder.CHANNELS):
+                    data[i,:] = (data[i,:]-(self.bounds['max'][ch]+self.bounds['min'][ch])/2) / (self.bounds['max'][ch]-self.bounds['min'][ch])
+            key = emotiv_decoder.decode(data)
+            #print(self.cache_data)
+            return(key)
+        else:
+            return(0)
 
     def post_pygame_event(self):
         self.stream_data()
