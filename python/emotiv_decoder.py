@@ -9,13 +9,6 @@ WINDOW_SIZE = 20 # number of measure points fed into the decoder
 WINDOW_SHIFT = 0.001 # sec (amount of shift between two windows)
 CHANNELS = ['X', 'Y']
 
-MLP_MODEL_FILE = 'mlp_model.pkl'
-try:
-    clf = pickle.load(open(MLP_MODEL_FILE,'rb'))
-except:
-    raise RuntimeError('No mlp model file found.')
-
-
 def bow_decoder(channel_data):
     if (np.mean(channel_data)>0.28):
         return(1)
@@ -55,4 +48,13 @@ def mlp_decoder(channel_data):
 def all_ones(channel_data):
     return(1)
 
-decode = mlp_decoder
+decode = szemoldok
+
+MLP_MODEL_FILE = 'mlp_model.pkl'
+try:
+    clf = pickle.load(open(MLP_MODEL_FILE,'rb'))
+    decode = mlp_decoder
+except:
+    print('No mlp model file found.')
+    print('Using alternative decoder.')
+
