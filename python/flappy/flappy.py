@@ -502,5 +502,14 @@ def getHitmask(image):
     return mask
 
 if __name__ == '__main__':
-    controller = EmokitController(connect_new_device=True)
-    main(controller)
+    if (len(sys.argv)<2):
+        print('Need is_research True or False')
+        exit()
+    if sys.argv[1] == "True":
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
+    elif sys.argv[1] == "False":
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
+    else:
+        print('Incorrect is_research, type True or False')
+        exit()
+    main(emokit_controller)
