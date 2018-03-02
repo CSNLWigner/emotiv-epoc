@@ -5,9 +5,24 @@ import pickle
 
 # CONSTANTS -- these are used to tell the EmokitController 
 # how to feed data into the decoder function
-WINDOW_SIZE = 20 # number of measure points fed into the decoder
+window_size = 4
+refraction_time = 12
+WINDOW_SIZE = window_size #+refraction_time # number of measure points fed into the decoder
 WINDOW_SHIFT = 0.001 # sec (amount of shift between two windows)
-CHANNELS = ['X', 'Y']
+CHANNELS = ['T7','T8']
+
+PARAMETER_NAMES = ['threshold']
+
+szemoldok_kuszob = pickle.load(open('vivi_szemoldok_kuszob.pkl','rb'))
+
+try:
+    parameters = np.load(open('PARAMETERS.pkl','rb'))
+except:
+    print('No parameters found by emotiv_decoder.py')
+    print('Using default (0) parameters')
+    parameters = dict()
+    for parameter_name in PARAMETER_NAMES:
+        parameters[parameter_name] = 0
 
 def bow_decoder(channel_data):
     if (np.mean(channel_data)>0.28):
@@ -33,22 +48,26 @@ def fog2(channel_data):
     return(0)
 
 def szemoldok(channel_data):
-    if ((np.mean(channel_data[0,:2])<-0.2) 
-        and (np.mean(channel_data[0,2:] > 0.3))):
+    if (np.mean(channel_data)>szemoldok_kuszob):
         return(1)
     else:
         return(0)
 
-def return_mean(channel_data):
-    return(int(np.mean(channel_data)>1))
-
 def mlp_decoder(channel_data):
     return(clf.predict([np.hstack(channel_data)])[0])
 
-def all_ones(channel_data):
-    return(1)
+def refraction_decoder(channel_data):
+    decoded_seq = []
+    for i in range(refraction_time):
+        window = channel_data[i:i+window_size]
+        decoded_seq.append(szemoldok(window))
+    # Check if only the last window produces 1
+    if (decoded_seq[-1] == 1): #and (sum(decoded_seq) == 1):
+        return(1)
+    else:
+        return(0)
 
-decode = szemoldok
+decode = szemoldok #refraction_decoder
 
 MLP_MODEL_FILE = 'mlp_model.pkl'
 try:
