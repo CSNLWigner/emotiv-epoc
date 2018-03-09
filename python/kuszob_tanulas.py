@@ -30,7 +30,7 @@ for i in range(1,len(adat[CHANNELS[0]])-ablak_meret):
     elif maximum < np.mean(ablak):
         maximum = np.mean(ablak)
 
-kuszob = min(atlagok_1)
+kuszob = np.mean(atlagok_1)-2*np.std(atlagok_1)
 
 
 pickle.dump(kuszob, open('vivi_szemoldok_kuszob.pkl','wb'))
