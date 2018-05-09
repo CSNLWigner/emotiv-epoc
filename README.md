@@ -1,5 +1,5 @@
 # emotiv-epoc
-Control a sphero robot with EEG device
+Control a sphero robot with EEG signals
 
 ## Requirements
 We use a Emotiv EPOC+ device.
