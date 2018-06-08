@@ -6,8 +6,8 @@ import sys
 CHANNELS = ['T7','T8']
 
 file_input = sys.argv[1]
-adat = pickle.load(open(file_input,'rb'))
-bounds = pickle.load(open('CALIBRATION_BOUNDS.pkl','rb'))
+adat = pickle.load(open('data/'+file_input,'rb'))
+bounds = pickle.load(open('data/CALIBRATION_BOUNDS.pkl','rb'))
 
 ablak_meret = 4
 atlagok = []
@@ -32,6 +32,6 @@ for i in range(1,len(adat[CHANNELS[0]])-ablak_meret):
 
 kuszob = np.mean(atlagok_1)-2*np.std(atlagok_1)
 
-
-pickle.dump(kuszob, open('vivi_szemoldok_kuszob.pkl','wb'))
+output_name = sys.argv[2]
+pickle.dump(kuszob, open('data/'+output_name,'wb'))
 print(kuszob)

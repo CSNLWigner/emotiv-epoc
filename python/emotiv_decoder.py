@@ -7,7 +7,7 @@ import pickle
 # how to feed data into the decoder function
 window_size = 4
 refraction_time = 8
-WINDOW_SIZE = window_size #+refraction_time # number of measure points fed into the decoder
+WINDOW_SIZE = window_size+refraction_time # number of measure points fed into the decoder
 WINDOW_SHIFT = 0.001 # sec (amount of shift between two windows)
 CHANNELS = ['T7','T8','X']
 OUTPUT_DIM = 2
@@ -69,6 +69,7 @@ def refraction_decoder(channel_data):
         decoded_seq.append(szemoldok(window))
     # Check if only the last window produces 1
     if (decoded_seq[-1] == 1): #and (sum(decoded_seq) == 1):
+        #print('now')
         return(1.0)
     else:
         return(0.0)
