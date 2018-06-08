@@ -28,13 +28,13 @@ s = Server()
 s.WaitForConnection()
 print('Waiting for command... ')
 
-time.sleep(5)
-robot.set_back_led(0, False)
-robot.disconnect()
+#time.sleep(5)
+#robot.set_back_led(0, False)
+#robot.disconnect()
 
-#while 1==1:
-#    time.sleep(1)
-#    exec(s.Client.recv(1024).decode())
+while 1==1:
+    time.sleep(0.1)
+    exec(s.Client.recv(1024).decode())
 
 #s.Client.Close()
 
