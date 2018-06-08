@@ -6,14 +6,15 @@ import pickle
 # CONSTANTS -- these are used to tell the EmokitController 
 # how to feed data into the decoder function
 window_size = 4
-refraction_time = 12
+refraction_time = 8
 WINDOW_SIZE = window_size #+refraction_time # number of measure points fed into the decoder
 WINDOW_SHIFT = 0.001 # sec (amount of shift between two windows)
-CHANNELS = ['T7','T8']
+CHANNELS = ['T7','T8','X']
 
 PARAMETER_NAMES = ['threshold']
 
-szemoldok_kuszob = pickle.load(open('vivi_szemoldok_kuszob.pkl','rb'))
+szemoldok_kuszob_file = input('Szemöldök küszöb filename: ')
+szemoldok_kuszob = pickle.load(open('data'+szemoldok_kuszob_file,'rb'))
 
 try:
     parameters = np.load(open('PARAMETERS.pkl','rb'))
@@ -59,7 +60,7 @@ def mlp_decoder(channel_data):
 def refraction_decoder(channel_data):
     decoded_seq = []
     for i in range(refraction_time):
-        window = channel_data[i:i+window_size]
+        window = channel_data[:,i:i+window_size]
         decoded_seq.append(szemoldok(window))
     # Check if only the last window produces 1
     if (decoded_seq[-1] == 1): #and (sum(decoded_seq) == 1):
@@ -67,7 +68,13 @@ def refraction_decoder(channel_data):
     else:
         return(0)
 
-decode = szemoldok #refraction_decoder
+def multi_output_decoder(channel_data):
+    # returns a refraction decoder and the last item of X channel
+    return(refraction_decoder(channel_data[:-1,:]), channel_data[-1,-1])
+
+decode = szemoldok 
+decode = refraction_decoder
+decode = multi_output_decoder
 
 MLP_MODEL_FILE = 'mlp_model.pkl'
 try:
