@@ -22,7 +22,7 @@ class EmokitController:
         self.t = []
         if self.cache:
             self.cache_data = dict()
-            self.cache_decoder = []
+            self.cache_decoder = np.zeros((emotiv_decoder.OUTPUT_DIM,1))
             for ch in CHANNELS:
                 self.cache_data[ch]=[0]
             self.cache_length = cache_length
@@ -35,10 +35,10 @@ class EmokitController:
     def load_calibration(self):
         self.calibrated = False
         try: 
-            self.bounds = pickle.load(open('CALIBRATION_BOUNDS.pkl','rb'))
+            self.bounds = pickle.load(open('data/CALIBRATION_BOUNDS.pkl','rb'))
             self.calibrated = True
         except:
-            print('No calibration profile found (CALIBRATION_BOUNDS.pkl)')
+            print('No calibration profile found (data/CALIBRATION_BOUNDS.pkl)')
 
     def establish_connection(self):
         while True:
@@ -57,44 +57,51 @@ class EmokitController:
                 for i, ch in enumerate(emotiv_decoder.CHANNELS):
                     data[i,:] = (data[i,:]-(self.bounds['max'][ch]+self.bounds['min'][ch])/2) / (self.bounds['max'][ch]-self.bounds['min'][ch])
             key = emotiv_decoder.decode(data)
+
             #print(self.cache_data)
+            if(np.size(self.cache_decoder,1)>=self.cache_length):
+                self.cache_decoder[:,:-1] = self.cache_decoder[:,1:] 
+                self.cache_decoder[:,-1] = key
+            else:
+                self.cache_decoder = np.hstack([self.cache_decoder,key.reshape(np.size(key),1)])
             return(key)
         else:
             return(0)
 
+    def stream_and_decode(self):
+        self.stream_data()
+        if (time.time()-self.t_last_window)>=emotiv_decoder.WINDOW_SHIFT:
+            key = self.decode()
+            self.t_last_window = time.time()
+        
+
     def post_pygame_event(self):
         self.stream_data()
-        if(len(self.cache_decoder)>=self.cache_length):
-                self.cache_decoder.pop(0)
         if (time.time()-self.t_last_window)>=emotiv_decoder.WINDOW_SHIFT:
             key = self.decode()
             self.t_last_window = time.time()
             if (key == 1):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_UP, 'unicode': None}))
-                self.cache_decoder.append(1)
             elif (key == 2):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_DOWN, 'unicode': None}))
-                self.cache_decoder.append(2)
             elif (key == 3):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_LEFT, 'unicode': None}))
-                self.cache_decoder.append(3)
             elif (key == 4):
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN,
                                                      {'key': K_RIGHT, 'unicode': None}))
-                self.cache_decoder.append(4)
-            else:
-                self.cache_decoder.append(0)
-        else:
-            self.cache_decoder.append(0)
+            
 
     def get_cache_data(self):
         return(self.cache_data)
 
     def get_cache_decoder(self):
         return(self.cache_decoder)
+
+    def get_cache_decoder_last(self):
+        return(self.cache_decoder[-1])
 
     def stream_data(self):
         record_sensors = dict()

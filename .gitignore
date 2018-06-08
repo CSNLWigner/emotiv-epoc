@@ -1,2 +1,6 @@
 *.pkl
 *.key
+*.mov
+*.pyc
+*.mp4
+*.png

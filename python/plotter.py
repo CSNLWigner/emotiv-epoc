@@ -15,6 +15,7 @@ pygame.font.init()
 FONT = pygame.font.SysFont(pygame.font.get_default_font(), 25)
 SPACING_Y = 0.1 # ratio of spacing to channel display
 MARGIN_X  = 0.07
+SCREEN_FREQ = 10
 
 def plot_channel(screen, x, name, pos_y, height):
     x_min = np.min(x)
@@ -61,15 +62,15 @@ def emotiv_plotter():
     
     # Initialize EmokitController with is_research setting obtained from cmd line input
     if (len(sys.argv)<2):
-    	print('Need is_research True or False')
-    	exit()
+        print('Need is_research True or False')
+        exit()
     if sys.argv[1] == "True":
-    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
     elif sys.argv[1] == "False":
-    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
     else:
-    	print('Incorrect is_research, type True or False')
-    	exit()
+        print('Incorrect is_research, type True or False')
+        exit()
 
     calibration_mode = False
     if (len(sys.argv)>2):
@@ -94,14 +95,14 @@ def emotiv_plotter():
                             bounds['min'][ch] = np.min(data[ch])
                             bounds['max'][ch] = np.max(data[ch])
                             
-                        filename='CALIBRATION_BOUNDS.pkl'
+                        filename='data/CALIBRATION_BOUNDS.pkl'
                         pickle.dump(bounds, open(filename,'wb'))
                         N = np.size(data[CHANNELS[0]])
                         data['input'] = np.zeros(N)
-                        for y in range(int(N / input_distance)):
+                        for y in range(1,int(N / input_distance)):
                             data['input'][y*input_distance] = 1
                     filename=input('Filename: ')
-                    pickle.dump(data,open(filename,'wb'))
+                    pickle.dump(data,open('data/'+filename,'wb'))
                     
                     for ch in CHANNELS:
                         data[ch]=[]
@@ -113,9 +114,14 @@ def emotiv_plotter():
                 pygame.quit()
                 quit()
 
-        new_data = emokit_controller.post_pygame_event()
+        new_data = emokit_controller.stream_and_decode()#post_pygame_event()
         plot_data = emokit_controller.get_cache_data()
         plot_data['decoder'] = emokit_controller.get_cache_decoder()
+        n_decoder_channels = np.size(plot_data['decoder'],0)
+        for i in range(n_decoder_channels):
+            plot_data['decoder'+str(i)] = plot_data['decoder'][i,:]
+        del plot_data['decoder']
+
         screen.fill((0,0,0))
         if recording:
             data_t += 1
@@ -124,11 +130,12 @@ def emotiv_plotter():
             	data[ch].append(plot_data[ch][-1])
             pygame.draw.rect(screen,(250,0,0),(SCREEN_WIDTH*(1-MARGIN_X/4*3),5,20,20))
 
-        if calibration_mode and ((data_t % input_distance) > 0) and ((data_t % input_distance) < 20):
-            pygame.draw.rect(screen,(0,0,250),(SCREEN_WIDTH/2,5,20,20))
+        if calibration_mode:# and ((data_t % input_distance) > 0) and ((data_t % input_distance) < 20):
+            pygame.draw.rect(screen,(0,0,250),(SCREEN_WIDTH/2+input_distance-20-(data_t % input_distance),5,20,20))
+            pygame.draw.lines(screen, (170,170,170), False, [(SCREEN_WIDTH/2,00),(SCREEN_WIDTH/2,30)], 1)
 
         t += 1
-        if (len(plot_data['AF4'])>100) and (t % 15==0):
+        if (len(plot_data['AF4'])>100) and (t % SCREEN_FREQ==0):
             plot_channels(screen, plot_data)
         time.sleep(0.001)
 
