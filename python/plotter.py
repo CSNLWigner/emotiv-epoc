@@ -61,15 +61,15 @@ def emotiv_plotter():
     
     # Initialize EmokitController with is_research setting obtained from cmd line input
     if (len(sys.argv)<2):
-    	print('Need is_research True or False')
-    	exit()
+        print('Need is_research True or False')
+        exit()
     if sys.argv[1] == "True":
-    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = True)
     elif sys.argv[1] == "False":
-    	emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
+        emokit_controller = EmokitController(cache=True, cache_length=400, is_research = False)
     else:
-    	print('Incorrect is_research, type True or False')
-    	exit()
+        print('Incorrect is_research, type True or False')
+        exit()
 
     calibration_mode = False
     if (len(sys.argv)>2):
@@ -116,6 +116,11 @@ def emotiv_plotter():
         new_data = emokit_controller.post_pygame_event()
         plot_data = emokit_controller.get_cache_data()
         plot_data['decoder'] = emokit_controller.get_cache_decoder()
+        n_decoder_channels = np.size(plot_data['decoder'],1)
+        for i in range(n_decoder_channels):
+            plot_data['decoder'+str(i)] = plot_data['decoder'][i,:]
+        del plot_data['decoder']
+
         screen.fill((0,0,0))
         if recording:
             data_t += 1
