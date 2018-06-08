@@ -114,10 +114,10 @@ def emotiv_plotter():
                 pygame.quit()
                 quit()
 
-        new_data = emokit_controller.post_pygame_event()
+        new_data = emokit_controller.stream_and_decode()#post_pygame_event()
         plot_data = emokit_controller.get_cache_data()
         plot_data['decoder'] = emokit_controller.get_cache_decoder()
-        n_decoder_channels = np.size(plot_data['decoder'],1)
+        n_decoder_channels = np.size(plot_data['decoder'],0)
         for i in range(n_decoder_channels):
             plot_data['decoder'+str(i)] = plot_data['decoder'][i,:]
         del plot_data['decoder']
